@@ -158,7 +158,7 @@ Profiles:
                     - *Org1
                     - *Org2
                     - *Org3
-    ChannelAll:
+    channelAll:
         Consortium: SampleConsortium
         <<: *ChannelDefaults
         Application:
@@ -169,7 +169,7 @@ Profiles:
                 - *Org3
             Capabilities:
                 <<: *ApplicationCapabilities
-    Channel12:
+    channel12:
         Consortium: SampleConsortium
         <<: *ChannelDefaults
         Application:

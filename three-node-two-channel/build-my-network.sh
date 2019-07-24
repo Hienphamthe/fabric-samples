@@ -337,7 +337,7 @@ function generateCerts() {
     rm -Rf crypto-config
   fi
   set -x
-  cryptogen generate --config=./crypto-config.yaml
+  cryptogen generate --config=./$CONFIG_FILE_PATH/crypto-config.yaml
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -400,11 +400,11 @@ function generateChannelArtifacts() {
   echo "CONSENSUS_TYPE="$CONSENSUS_TYPE
   set -x
   if [ "$CONSENSUS_TYPE" == "solo" ]; then
-    configtxgen -profile ThreeOrgsOrdererGenesis -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
+    configtxgen -profile ThreeOrgsOrdererGenesis -channelID $CHANNEL_NAME_1 -outputBlock ./channel-artifacts/genesis.block
   elif [ "$CONSENSUS_TYPE" == "kafka" ]; then
-    configtxgen -profile SampleDevModeKafka -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
+    configtxgen -profile SampleDevModeKafka -channelID $CHANNEL_NAME_1 -outputBlock ./channel-artifacts/genesis.block
   elif [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
-    configtxgen -profile SampleMultiNodeEtcdRaft -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
+    configtxgen -profile SampleMultiNodeEtcdRaft -channelID $CHANNEL_NAME_1 -outputBlock ./channel-artifacts/genesis.block
   else
     set +x
     echo "unrecognized CONSESUS_TYPE='$CONSENSUS_TYPE'. exiting"
@@ -418,10 +418,22 @@ function generateChannelArtifacts() {
   fi
   echo
   echo "#################################################################"
-  echo "### Generating channel configuration transaction 'channel.tx' ###"
+  echo "### Generating channel configuration transaction 'channelAll.tx' ###"
   echo "#################################################################"
   set -x
-  configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID $CHANNEL_NAME
+  configtxgen -profile channelAll -outputCreateChannelTx ./channel-artifacts/channelAll.tx -channelID $CHANNEL_NAME_1
+  res=$?
+  set +x
+  if [ $res -ne 0 ]; then
+    echo "Failed to generate channel configuration transaction..."
+    exit 1
+  fi
+  echo
+  echo "#################################################################"
+  echo "### Generating channel configuration transaction 'channel12.tx' ###"
+  echo "#################################################################"
+  set -x
+  configtxgen -profile channel12 -outputCreateChannelTx ./channel-artifacts/channel12.tx -channelID $CHANNEL_NAME_2
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -434,7 +446,7 @@ function generateChannelArtifacts() {
   echo "#######    Generating anchor peer update for Org1MSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
+  configtxgen -profile channelAll -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org1MSP
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -447,12 +459,27 @@ function generateChannelArtifacts() {
   echo "#######    Generating anchor peer update for Org2MSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate \
-    ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
+  configtxgen -profile channelAll -outputAnchorPeersUpdate \
+    ./channel-artifacts/Org2MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org2MSP
   res=$?
   set +x
   if [ $res -ne 0 ]; then
     echo "Failed to generate anchor peer update for Org2MSP..."
+    exit 1
+  fi
+  echo
+
+  echo
+  echo "#################################################################"
+  echo "#######    Generating anchor peer update for Org3MSP   ##########"
+  echo "#################################################################"
+  set -x
+  configtxgen -profile channelAll -outputAnchorPeersUpdate \
+    ./channel-artifacts/Org2MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org2MSP
+  res=$?
+  set +x
+  if [ $res -ne 0 ]; then
+    echo "Failed to generate anchor peer update for Org3MSP..."
     exit 1
   fi
   echo
@@ -466,8 +493,9 @@ OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/wi
 CLI_TIMEOUT=10
 # default for delay between commands
 CLI_DELAY=3
-# channel name defaults to "mychannel"
-CHANNEL_NAME="mychannel"
+# channel name both
+CHANNEL_NAME_1="channelAll"
+CHANNEL_NAME_2="channel12"
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE=docker-compose-cli.yaml
 #
