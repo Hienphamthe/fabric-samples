@@ -158,7 +158,7 @@ Profiles:
                     - *Org1
                     - *Org2
                     - *Org3
-    channelAll:
+    channelall:
         Consortium: SampleConsortium
         <<: *ChannelDefaults
         Application:

@@ -167,11 +167,11 @@ function networkUp() {
   fi
 
   # now run the end to end script
-  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
-  if [ $? -ne 0 ]; then
-    echo "ERROR !!!! Test failed"
-    exit 1
-  fi
+  #docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  #if [ $? -ne 0 ]; then
+  #  echo "ERROR !!!! Test failed"
+  #  exit 1
+  #fi
 }
 
 # Upgrade the network components which are at version 1.3.x to 1.4.x
@@ -337,7 +337,7 @@ function generateCerts() {
     rm -Rf crypto-config
   fi
   set -x
-  cryptogen generate --config=./$CONFIG_FILE_PATH/crypto-config.yaml
+  cryptogen generate --config=./crypto-config.yaml
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -417,11 +417,11 @@ function generateChannelArtifacts() {
     exit 1
   fi
   echo
-  echo "#################################################################"
-  echo "### Generating channel configuration transaction 'channelAll.tx' ###"
-  echo "#################################################################"
+  echo "####################################################################"
+  echo "### Generating channel configuration transaction 'channelall.tx' ###"
+  echo "####################################################################"
   set -x
-  configtxgen -profile channelAll -outputCreateChannelTx ./channel-artifacts/channelAll.tx -channelID $CHANNEL_NAME_1
+  configtxgen -profile channelall -outputCreateChannelTx ./channel-artifacts/channelall.tx -channelID $CHANNEL_NAME_1
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -429,9 +429,9 @@ function generateChannelArtifacts() {
     exit 1
   fi
   echo
-  echo "#################################################################"
+  echo "###################################################################"
   echo "### Generating channel configuration transaction 'channel12.tx' ###"
-  echo "#################################################################"
+  echo "###################################################################"
   set -x
   configtxgen -profile channel12 -outputCreateChannelTx ./channel-artifacts/channel12.tx -channelID $CHANNEL_NAME_2
   res=$?
@@ -446,7 +446,7 @@ function generateChannelArtifacts() {
   echo "#######    Generating anchor peer update for Org1MSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile channelAll -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org1MSP
+  configtxgen -profile channelall -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org1MSP
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -459,7 +459,7 @@ function generateChannelArtifacts() {
   echo "#######    Generating anchor peer update for Org2MSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile channelAll -outputAnchorPeersUpdate \
+  configtxgen -profile channelall -outputAnchorPeersUpdate \
     ./channel-artifacts/Org2MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org2MSP
   res=$?
   set +x
@@ -474,7 +474,7 @@ function generateChannelArtifacts() {
   echo "#######    Generating anchor peer update for Org3MSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile channelAll -outputAnchorPeersUpdate \
+  configtxgen -profile channelall -outputAnchorPeersUpdate \
     ./channel-artifacts/Org2MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org2MSP
   res=$?
   set +x
@@ -485,6 +485,10 @@ function generateChannelArtifacts() {
   echo
 }
 
+          ##############################################
+########################### Main() ###############################
+          ##############################################
+
 # Obtain the OS and Architecture string that will be used to select the correct
 # native binaries for your platform, e.g., darwin-amd64 or linux-amd64
 OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
@@ -494,7 +498,7 @@ CLI_TIMEOUT=10
 # default for delay between commands
 CLI_DELAY=3
 # channel name both
-CHANNEL_NAME_1="channelAll"
+CHANNEL_NAME_1="channelall"
 CHANNEL_NAME_2="channel12"
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE=docker-compose-cli.yaml
