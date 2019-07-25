@@ -1,3 +1,33 @@
+#!/bin/bash
+#
+# Copyright IBM Corp All Rights Reserved
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# This script will orchestrate a sample end-to-end execution of the Hyperledger
+# Fabric network.
+#
+# The end-to-end verification provisions a sample Fabric network consisting of
+# two organizations, each maintaining two peers, and a “solo” ordering service.
+#
+# This verification makes use of two fundamental tools, which are necessary to
+# create a functioning transactional network with digital signature validation
+# and access control:
+#
+# * cryptogen - generates the x509 certificates used to identify and
+#   authenticate the various components in the network.
+# * configtxgen - generates the requisite configuration artifacts for orderer
+#   bootstrap and channel creation.
+#
+# Each tool consumes a configuration yaml file, within which we specify the topology
+# of our network (cryptogen) and the location of our certificates for various
+# configuration operations (configtxgen).  Once the tools have been successfully run,
+# we are able to launch our network.  More detail on the tools and the structure of
+# the network will be provided later in this document.  For now, let's get going...
+
+# prepending $PWD/../bin to PATH to ensure we are picking up the correct binaries
+# this may be commented out to resolve installed version of tools if desired
 export PATH=${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
 export VERBOSE=false
@@ -5,7 +35,7 @@ export VERBOSE=false
 # Print the usage message
 function printHelp() {
   echo "Usage: "
-  echo "  build-my-network.sh <mode> [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-l <language>] [-o <consensus-type>] [-i <imagetag>] [-v]"
+  echo "  byfn.sh <mode> [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-l <language>] [-o <consensus-type>] [-i <imagetag>] [-v]"
   echo "    <mode> - one of 'up', 'down', 'restart', 'generate' or 'upgrade'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
@@ -167,11 +197,11 @@ function networkUp() {
   fi
 
   # now run the end to end script
-  #docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
-  #if [ $? -ne 0 ]; then
-  #  echo "ERROR !!!! Test failed"
-  #  exit 1
-  #fi
+  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  if [ $? -ne 0 ]; then
+    echo "ERROR !!!! Test failed"
+    exit 1
+  fi
 }
 
 # Upgrade the network components which are at version 1.3.x to 1.4.x
@@ -265,8 +295,8 @@ function networkDown() {
     #Cleanup images
     removeUnwantedImages
     # remove orderer block and other channel configuration transactions and certs
-    rm -rf channel-artifacts/*.block channel-artifacts/*.tx crypto-config ./org3-artifacts/crypto-config/ channel-artifacts/org3.json
-    echo "Removed orderer block and other channel configuration transactions and certs"
+    rm -rf channel-artifacts/*.block channel-artifacts/*.tx crypto-config ./org3-artifacts/crypto-config/ channel-artifacts/*.json
+    echo "Removed orderer block and other channel configuration transactions and certs."
     # remove the docker-compose yaml file that was customized to the example
     rm -f docker-compose-e2e.yaml
   fi
@@ -363,7 +393,7 @@ function generateCerts() {
 # This file also specifies a consortium - ``SampleConsortium`` - consisting of our
 # two Peer Orgs.  Pay specific attention to the "Profiles" section at the top of
 # this file.  You will notice that we have two unique headers. One for the orderer genesis
-# block - ``ThreeOrgsOrdererGenesis`` - and one for our channel - ``TwoOrgsChannel``.
+# block - ``TwoOrgsOrdererGenesis`` - and one for our channel - ``TwoOrgsChannel``.
 # These headers are important, as we will pass them in as arguments when we create
 # our artifacts.  This file also contains two additional specifications that are worth
 # noting.  Firstly, we specify the anchor peers for each Peer Org
@@ -401,11 +431,11 @@ function generateChannelArtifacts() {
   echo "CONSENSUS_TYPE="$CONSENSUS_TYPE
   set -x
   if [ "$CONSENSUS_TYPE" == "solo" ]; then
-    configtxgen -profile ThreeOrgsOrdererGenesis -channelID $CHANNEL_NAME_1 -outputBlock ./channel-artifacts/genesis.block
+    configtxgen -profile TwoOrgsOrdererGenesis -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
   elif [ "$CONSENSUS_TYPE" == "kafka" ]; then
-    configtxgen -profile SampleDevModeKafka -channelID $CHANNEL_NAME_1 -outputBlock ./channel-artifacts/genesis.block
+    configtxgen -profile SampleDevModeKafka -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
   elif [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
-    configtxgen -profile SampleMultiNodeEtcdRaft -channelID $CHANNEL_NAME_1 -outputBlock ./channel-artifacts/genesis.block
+    configtxgen -profile SampleMultiNodeEtcdRaft -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
   else
     set +x
     echo "unrecognized CONSESUS_TYPE='$CONSENSUS_TYPE'. exiting"
@@ -418,23 +448,11 @@ function generateChannelArtifacts() {
     exit 1
   fi
   echo
-  echo "####################################################################"
-  echo "### Generating channel configuration transaction 'channelall.tx' ###"
-  echo "####################################################################"
+  echo "#################################################################"
+  echo "### Generating channel configuration transaction 'channel.tx' ###"
+  echo "#################################################################"
   set -x
-  configtxgen -profile channelall -outputCreateChannelTx ./channel-artifacts/channelall.tx -channelID $CHANNEL_NAME_1
-  res=$?
-  set +x
-  if [ $res -ne 0 ]; then
-    echo "Failed to generate channel configuration transaction..."
-    exit 1
-  fi
-  echo
-  echo "###################################################################"
-  echo "### Generating channel configuration transaction 'channel12.tx' ###"
-  echo "###################################################################"
-  set -x
-  configtxgen -profile channel12 -outputCreateChannelTx ./channel-artifacts/channel12.tx -channelID $CHANNEL_NAME_2
+  configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID $CHANNEL_NAME
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -447,7 +465,7 @@ function generateChannelArtifacts() {
   echo "#######    Generating anchor peer update for Org1MSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile channelall -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org1MSP
+  configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -460,35 +478,29 @@ function generateChannelArtifacts() {
   echo "#######    Generating anchor peer update for Org2MSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile channelall -outputAnchorPeersUpdate \
-    ./channel-artifacts/Org2MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org2MSP
+  configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate \
+    ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
   res=$?
   set +x
   if [ $res -ne 0 ]; then
     echo "Failed to generate anchor peer update for Org2MSP..."
     exit 1
   fi
-  echo
 
   echo
   echo "#################################################################"
-  echo "#######    Generating anchor peer update for Org3MSP   ##########"
+  echo "###########    Generating JSON file for each Org   ##############"
   echo "#################################################################"
   set -x
-  configtxgen -profile channelall -outputAnchorPeersUpdate \
-    ./channel-artifacts/Org2MSPanchors_channelAll.tx -channelID $CHANNEL_NAME_1 -asOrg Org2MSP
-  res=$?
+  configtxgen -printOrg Org1MSP > ./channel-artifacts/org1.json
   set +x
-  if [ $res -ne 0 ]; then
-    echo "Failed to generate anchor peer update for Org3MSP..."
-    exit 1
-  fi
-  echo
+  set -x
+  configtxgen -printOrg Org2MSP > ./channel-artifacts/org2.json
+  set +x
+  set -x
+  configtxgen -printOrg Org3MSP > ./channel-artifacts/org3.json
+  set +x
 }
-
-          ##############################################
-########################### Main() ###############################
-          ##############################################
 
 # Obtain the OS and Architecture string that will be used to select the correct
 # native binaries for your platform, e.g., darwin-amd64 or linux-amd64
@@ -498,9 +510,8 @@ OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/wi
 CLI_TIMEOUT=10
 # default for delay between commands
 CLI_DELAY=3
-# channel name both
-CHANNEL_NAME_1="channelall"
-CHANNEL_NAME_2="channel12"
+# channel name defaults to "mychannel"
+CHANNEL_NAME="mychannel"
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE=docker-compose-cli.yaml
 #

@@ -164,6 +164,7 @@ Profiles:
         Application:
             <<: *ApplicationDefaults
             Organizations:
+                - *OrdererOrg
                 - *Org1
                 - *Org2
                 - *Org3
