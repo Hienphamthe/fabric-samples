@@ -45,7 +45,8 @@ setGlobals() {
     CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG2_CA
     CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
     if [ $PEER -eq 0 ]; then
-      CORE_PEER_ADDRESS=peer0.org2.example.com:9051
+      #CORE_PEER_ADDRESS=peer0.org2.example.com:9051
+      CORE_PEER_ADDRESS=peer0.org2.example.com:8051
     else
       CORE_PEER_ADDRESS=peer1.org2.example.com:10051
     fi
@@ -55,7 +56,8 @@ setGlobals() {
     CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG3_CA
     CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp
     if [ $PEER -eq 0 ]; then
-      CORE_PEER_ADDRESS=peer0.org3.example.com:11051
+      #CORE_PEER_ADDRESS=peer0.org3.example.com:11051
+      CORE_PEER_ADDRESS=peer0.org3.example.com:9051
     else
       CORE_PEER_ADDRESS=peer1.org3.example.com:12051
     fi
@@ -95,6 +97,7 @@ updateAnchorPeers() {
 joinChannelWithRetry() {
   PEER=$1
   ORG=$2
+  CHANNEL_NAME=$3
   setGlobals $PEER $ORG
 
   set -x
@@ -137,17 +140,32 @@ instantiateChaincode() {
   # while 'peer chaincode' command can get the orderer endpoint from the peer
   # (if join was successful), let's supply it directly as we know it using
   # the "-o" option
-  if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-    set -x
-    peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer')" >&log.txt
-    res=$?
-    set +x
+  if [ "$CHANNEL_NAME" == "channelall" ]; then
+      if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+        set -x
+        peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')">&log.txt
+        res=$?
+        set +x
+      else
+        set -x
+        peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')">&log.txt
+        res=$?
+        set +x
+      fi
   else
-    set -x
-    peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer')" >&log.txt
-    res=$?
-    set +x
+      if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+        set -x
+        peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","10","b","20"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer')">&log.txt
+        res=$?
+        set +x
+      else
+        set -x
+        peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","10","b","20"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer')">&log.txt
+        res=$?
+        set +x
+      fi
   fi
+
   cat log.txt
   verifyResult $res "Chaincode instantiation on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' failed"
   echo "===================== Chaincode is instantiated on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
@@ -189,13 +207,19 @@ chaincodeQuery() {
     peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt
     res=$?
     set +x
-    test $res -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
-    test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
-    # removed the string "Query Result" from peer chaincode query command
-    # result. as a result, have to support both options until the change
-    # is merged.
-    test $rc -ne 0 && VALUE=$(cat log.txt | egrep '^[0-9]+$')
-    test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
+
+    if [ $res -eq 1 ] && [ "$EXPECTED_RESULT" == "error" ]; then
+      let rc=0
+    else
+      test $res -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
+      test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
+      # removed the string "Query Result" from peer chaincode query command
+      # result. as a result, have to support both options until the change
+      # is merged.
+      test $rc -ne 0 && VALUE=$(cat log.txt | egrep '^[0-9]+$')
+      test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
+    fi
+    
   done
   echo
   cat log.txt
@@ -303,14 +327,20 @@ chaincodeInvoke() {
   # while 'peer chaincode' command can get the orderer endpoint from the
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
+  if [ "$CHANNEL_NAME" == "channelall" ]; then
+    VALUE=10
+  else
+    VALUE=1
+  fi
+
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+    peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c '{"Args":["invoke","a","b","'$VALUE'"]}' >&log.txt
     res=$?
     set +x
   else
     set -x
-    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c '{"Args":["invoke","a","b","'$VALUE'"]}' >&log.txt
     res=$?
     set +x
   fi
