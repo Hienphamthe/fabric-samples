@@ -16,7 +16,7 @@ services:
   peer0.org1.de:
     container_name: peer0.org1.de
     extends:
-      file:  base/docker-compose-base.yaml
+      file:  base/docker-compose-peer.yaml
       service: peer0.org1.de
     networks:
       - logichain
@@ -24,7 +24,7 @@ services:
   peer1.org1.de:
     container_name: peer1.org1.de
     extends:
-      file:  base/docker-compose-base.yaml
+      file:  base/docker-compose-peer.yaml
       service: peer1.org1.de
     networks:
       - logichain
@@ -32,7 +32,7 @@ services:
   peer0.org2.de:
     container_name: peer0.org2.de
     extends:
-      file:  base/docker-compose-base.yaml
+      file:  base/docker-compose-peer.yaml
       service: peer0.org2.de
     networks:
       - logichain
@@ -40,7 +40,7 @@ services:
   peer1.org2.de:
     container_name: peer1.org2.de
     extends:
-      file:  base/docker-compose-base.yaml
+      file:  base/docker-compose-peer.yaml
       service: peer1.org2.de
     networks:
       - logichain
@@ -48,7 +48,7 @@ services:
   peer0.org3.de:
     container_name: peer0.org3.de
     extends:
-      file:  base/docker-compose-base.yaml
+      file:  base/docker-compose-peer.yaml
       service: peer0.org3.de
     networks:
       - logichain
@@ -56,7 +56,7 @@ services:
   peer1.org3.de:
     container_name: peer1.org3.de
     extends:
-      file:  base/docker-compose-base.yaml
+      file:  base/docker-compose-peer.yaml
       service: peer1.org3.de
     networks:
       - logichain

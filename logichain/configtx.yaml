@@ -80,9 +80,31 @@ Application: &ApplicationDefaults
 
 
 Orderer: &OrdererDefaults
-    OrdererType: solo
+    OrdererType: etcdraft
+    EtcdRaft:
+        Consenters:
+            - Host: orderer.org1.de
+              Port: 7050
+              ClientTLSCert: crypto-config/peerOrganizations/org1.de/peers/orderer.org1.de/tls/server.crt
+              ServerTLSCert: crypto-config/peerOrganizations/org1.de/peers/orderer.org1.de/tls/server.crt
+            - Host: orderer.org2.de
+              Port: 7050
+              ClientTLSCert: crypto-config/peerOrganizations/org2.de/peers/orderer.org2.de/tls/server.crt
+              ServerTLSCert: crypto-config/peerOrganizations/org2.de/peers/orderer.org2.de/tls/server.crt
+            - Host: orderer.org3.de
+              Port: 7050
+              ClientTLSCert: crypto-config/peerOrganizations/org3.de/peers/orderer.org3.de/tls/server.crt
+              ServerTLSCert: crypto-config/peerOrganizations/org3.de/peers/orderer.org3.de/tls/server.crt
+        Options:
+            TickInterval: 500ms
+            ElectionTick: 10
+            HeartbeatTick: 1
+            MaxInflightBlocks: 5
+            SnapshotIntervalSize: 20 MB
     Addresses:
-        - orderer.org1.de:7050 # Just an example, will be overwritten in Profile
+        - orderer.org1.de:7050
+        - orderer.org2.de:7050
+        - orderer.org3.de:7050
     BatchTimeout: 2s
     BatchSize:
         MaxMessageCount: 10
@@ -102,6 +124,8 @@ Orderer: &OrdererDefaults
         BlockValidation:
             Type: ImplicitMeta
             Rule: "ANY Writers"
+    Capabilities:
+        <<: *OrdererCapabilities
 
 Channel: &ChannelDefaults
     Policies:
@@ -128,58 +152,27 @@ Channel: &ChannelDefaults
 #
 ################################################################################
 Profiles:
-    ThreeOrgsChannel:
-        Consortium: SampleConsortium
+    ThreeOrgsOrdererGenesisRAFT:
         <<: *ChannelDefaults
-        Application:
-            <<: *ApplicationDefaults
+        Orderer:
+            <<: *OrdererDefaults
             Organizations:
                 - *Org1
                 - *Org2
                 - *Org3
-            Capabilities:
-                <<: *ApplicationCapabilities
-
-    ThreeOrgsOrdererGenesisRAFT:
-        <<: *ChannelDefaults
-        Capabilities:
-            <<: *ChannelCapabilities
-        Orderer:
-            <<: *OrdererDefaults
-            OrdererType: etcdraft
-            EtcdRaft:
-                Consenters:
-                - Host: orderer.org1.de
-                  Port: 7050
-                  ClientTLSCert: crypto-config/peerOrganizations/org1.de/peers/orderer.org1.de/tls/server.crt
-                  ServerTLSCert: crypto-config/peerOrganizations/org1.de/peers/orderer.org1.de/tls/server.crt
-                - Host: orderer.org2.de
-                  Port: 7050
-                  ClientTLSCert: crypto-config/peerOrganizations/org2.de/peers/orderer.org2.de/tls/server.crt
-                  ServerTLSCert: crypto-config/peerOrganizations/org2.de/peers/orderer.org2.de/tls/server.crt
-                - Host: orderer.org3.de
-                  Port: 7050
-                  ClientTLSCert: crypto-config/peerOrganizations/org3.de/peers/orderer.org3.de/tls/server.crt
-                  ServerTLSCert: crypto-config/peerOrganizations/org3.de/peers/orderer.org3.de/tls/server.crt
-            Addresses:
-                - orderer.org1.de:7050
-                - orderer.org2.de:7050
-                - orderer.org3.de:7050
-            Organizations:
-            - *Org1
-            - *Org2
-            - *Org3
-            Capabilities:
-                <<: *OrdererCapabilities
-        Application:
-            <<: *ApplicationDefaults
-            Organizations:
-            - <<: *Org1
-            - <<: *Org2
-            - <<: *Org3
         Consortiums:
             SampleConsortium:
                 Organizations:
+                    - *Org1
+                    - *Org2
+                    - *Org3
+
+    ThreeOrgsChannel:
+        <<: *ChannelDefaults
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
                 - *Org1
                 - *Org2
                 - *Org3
