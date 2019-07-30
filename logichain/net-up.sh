@@ -8,6 +8,10 @@ export FABRIC_CFG_PATH=${PWD}
 export CHANNEL_NAME=mychannel
 ../bin/configtxgen -profile ThreeOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID $CHANNEL_NAME
 
+../bin/configtxgen -printOrg Org1MSP > ./channel-artifacts/org1.json
+../bin/configtxgen -printOrg Org2MSP > ./channel-artifacts/org2.json
+../bin/configtxgen -printOrg Org3MSP > ./channel-artifacts/org3.json
+
 ../bin/configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
 ../bin/configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
 ../bin/configtxgen -profile ThreeOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org3MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org3MSP

@@ -89,7 +89,9 @@ services:
         - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
     depends_on:
       - orderer.org1.de
+      - orderer1.org1.de
       - orderer.org2.de
+      - orderer1.org2.de
       - orderer.org3.de
       - peer0.org1.de
       - peer1.org1.de

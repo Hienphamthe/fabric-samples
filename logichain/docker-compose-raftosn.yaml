@@ -2,7 +2,9 @@ version: '2'
 
 volumes:
   orderer.org1.de:
+  orderer1.org1.de:
   orderer.org2.de:
+  orderer1.org2.de:
   orderer.org3.de:
 
 networks:
@@ -27,6 +29,23 @@ services:
     ports:
     - 7050:7050
 
+  orderer1.org1.de:
+    container_name: orderer1.org1.de
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    environment:
+    - ORDERER_GENERAL_LOCALMSPID=Org1MSP
+    networks:
+    - logichain
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/peerOrganizations/org1.de/peers/orderer1.org1.de/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/peerOrganizations/org1.de/peers/orderer1.org1.de/tls/:/var/hyperledger/orderer/tls
+        - orderer1.org1.de:/var/hyperledger/production/orderer
+    ports:
+    - 7049:7050
+
   orderer.org2.de:
     container_name: orderer.org2.de
     extends:
@@ -43,6 +62,23 @@ services:
         - orderer.org2.de:/var/hyperledger/production/orderer
     ports:
     - 9050:7050
+
+  orderer1.org2.de:
+    container_name: orderer1.org2.de
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    environment:
+    - ORDERER_GENERAL_LOCALMSPID=Org2MSP
+    networks:
+    - logichain
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/peerOrganizations/org2.de/peers/orderer1.org2.de/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/peerOrganizations/org2.de/peers/orderer1.org2.de/tls/:/var/hyperledger/orderer/tls
+        - orderer1.org2.de:/var/hyperledger/production/orderer
+    ports:
+    - 9049:7050
 
   orderer.org3.de:
     container_name: orderer.org3.de
