@@ -7,7 +7,7 @@ echo "\___ \    | |     / _ \   | |_) |   | |  "
 echo " ___) |   | |    / ___ \  |  _ <    | |  "
 echo "|____/    |_|   /_/   \_\ |_| \_\   |_|  "
 echo
-echo "Build your first network (BYFN) end-to-end test"
+echo "Logichain end-to-end test"
 echo
 CHANNEL_NAME="$1"
 DELAY="$2"
@@ -39,17 +39,17 @@ echo "Channel name : "$CHANNEL_NAME
 
 createChannel() {
 	setGlobals 0 1
-
+	# send request to orderer of org1 for channel.block on behalf of peer0.org1
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-                set -x
-		peer channel create -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx >&log.txt
+		set -x
+		peer channel create -o orderer.org1.de:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx >&log.txt
 		res=$?
-                set +x
+		set +x
 	else
-				set -x
-		peer channel create -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA >&log.txt
+		set -x
+		peer channel create -o orderer.org1.de:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA >&log.txt
 		res=$?
-				set +x
+		set +x
 	fi
 	cat log.txt
 	verifyResult $res "Channel creation failed"
@@ -104,12 +104,45 @@ chaincodeQuery 0 1 100
 echo "Sending invoke transaction on peer0.org1 peer0.org2 peer0.org3..."
 chaincodeInvoke 0 1 0 2 0 3
 
-# Query on chaincode on peer0.org3, check if the result is 90
+# Query on chaincode on peer0.org2, check if the result is 90
 echo "Querying chaincode on peer0.org3..."
 chaincodeQuery 0 2 90
 
+# Test crash fault tolerance
 echo
-echo "========= All GOOD, BYFN execution completed =========== "
+echo "Test crash fault tolerance"
+echo "Please Shutdown 2/5 orderers: except orderer.org1 & orderer.org3"
+for i in {20..1}
+do
+   echo "${i}s"
+   sleep 1
+done
+
+echo "Wait 10s for Raft to elect new leader"
+sleep 10
+
+echo "Invoke from peer0.org1.de"
+chaincodeInvoke 0 1 0 2 0 3
+
+# Query on chaincode on peer0.org3, check if the result is 80
+echo "Querying chaincode on peer0.org3... Raft must work and result must be 80"
+chaincodeQuery 0 3 80
+
+echo "Please shutdown 3/5 orderers. Quorom (4) uncreachable"
+for i in {10..1}
+do
+   echo "${i}s"
+   sleep 1
+done
+
+echo "Wait 10s"
+sleep 10
+
+echo "Invoke from peer0.org1.de in case raft lost consensus"
+chaincodeInvokeInCrashCase 0 1 0 2 0 3
+
+echo
+echo "========= All GOOD, test completed successfully =========== "
 echo
 
 echo
