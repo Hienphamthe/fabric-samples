@@ -18,6 +18,7 @@ verifyResult() {
   fi
 }
 
+#### Old script ####
 # Set OrdererOrg.Admin globals
 setOrdererGlobals() {
   CORE_PEER_LOCALMSPID="OrdererMSP"

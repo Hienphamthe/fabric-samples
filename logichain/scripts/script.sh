@@ -47,7 +47,7 @@ createChannel() {
 		set +x
 	else
 		set -x
-		peer channel create -o orderer.org1.de:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA >&log.txt
+		peer channel create -o orderer.org1.de:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG1_CA >&log.txt
 		res=$?
 		set +x
 	fi
@@ -84,6 +84,10 @@ updateAnchorPeers 0 2
 echo "Updating anchor peers for org2..."
 updateAnchorPeers 0 3
 
+## Stop here if you want to install other chaincode
+echo "Stop before install any chaincode. Requested by user."
+exit 0
+
 ## Install chaincode on peer0.org1 and peer0.org2 and peer0.org3
 echo "Installing chaincode on peer0.org1..."
 installChaincode 0 1
@@ -107,6 +111,10 @@ chaincodeInvoke 0 1 0 2 0 3
 # Query on chaincode on peer0.org2, check if the result is 90
 echo "Querying chaincode on peer0.org3..."
 chaincodeQuery 0 2 90
+
+# Stop here if you dont want to test Raft CFT
+echo "Stop before testing CFT. Requested by user."
+exit 0
 
 # Test crash fault tolerance
 echo

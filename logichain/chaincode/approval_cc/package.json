@@ -1,0 +1,26 @@
+{
+  "name": "approval_cc",
+  "version": "1.0.0",
+  "description": "Chaincode to manage organization approval on changing device ID",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "fabric-chaincode-node start"
+  },
+  "engines": {
+    "node": ">=8",
+    "npm": ">=5"
+  },
+  "engineStrict": true,
+  "dependencies": {
+    "fabric-contract-api": "~1.4.0",
+    "fabric-shim": "~1.4.0"
+  },
+  "keywords": [
+    "Org",
+    "approval",
+    "chaincode"
+  ],
+  "author": "hienpham",
+  "license": "ISC"
+}
