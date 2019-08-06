@@ -1,5 +1,3 @@
-'use strict';
-
 const ApprovalCC = require('./approval_cc');
 
 module.exports.ApprovalCC = ApprovalCC;
