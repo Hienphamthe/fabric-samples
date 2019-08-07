@@ -166,7 +166,7 @@ class ApprovalCC extends Contract {
     */
     async getOrgAppoval(ctx, org) {
         console.info('============= START : get Org Approval ===========');
-        const orgKey = `Approval${org}`;
+        const orgKey = `APPROVAL${org}`;
         const approvalAsBytes = await ctx.stub.getState(orgKey);
         if (!approvalAsBytes || approvalAsBytes.length === 0) {
             throw new Error(`${orgKey} does not exist`);
