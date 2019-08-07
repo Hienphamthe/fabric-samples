@@ -50,7 +50,7 @@ peer chaincode invoke -o orderer.org3.de:7050 --tls true --cafile \
 -C $CHANNEL_NAME -n mycc --peerAddresses peer0.org1.de:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.de/peers/peer0.org1.de/tls/ca.crt \
 --peerAddresses peer0.org2.de:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.de/peers/peer0.org2.de/tls/ca.crt \
 --peerAddresses peer0.org3.de:11051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.de/peers/peer0.org3.de/tls/ca.crt \
--c '{"function":"setOrgApproval","Args":["1","true","a,b,c"]}'
+-c '{"function":"setOrgApproval","Args":["Org1","true","a,b,c"]}'
 
 #Invoke chaincode (peer0.org1)
 peer chaincode invoke -o orderer.org1.de:7050 --tls true --cafile \
@@ -58,7 +58,15 @@ peer chaincode invoke -o orderer.org1.de:7050 --tls true --cafile \
 -C $CHANNEL_NAME -n mycc --peerAddresses peer0.org1.de:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.de/peers/peer0.org1.de/tls/ca.crt \
 --peerAddresses peer0.org2.de:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.de/peers/peer0.org2.de/tls/ca.crt \
 --peerAddresses peer0.org3.de:11051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.de/peers/peer0.org3.de/tls/ca.crt \
--c '{"function":"setOrgApproval","Args":["1","true","a,b,c"]}'
+-c '{"function":"setOrgApproval","Args":["Org1","true","a,b,c"]}'
+
+#Invoke chaincode (peer0.org2)
+peer chaincode invoke -o orderer.org2.de:7050 --tls true --cafile \
+/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.de/peers/orderer.org2.de/msp/tlscacerts/tlsca.org2.de-cert.pem \
+-C $CHANNEL_NAME -n mycc --peerAddresses peer0.org1.de:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.de/peers/peer0.org1.de/tls/ca.crt \
+--peerAddresses peer0.org2.de:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.de/peers/peer0.org2.de/tls/ca.crt \
+--peerAddresses peer0.org3.de:11051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.de/peers/peer0.org3.de/tls/ca.crt \
+-c '{"function":"setOrgApproval","Args":["Org2","true","a,b,c"]}'
 
 #Upgrade chaincode
 peer chaincode upgrade -n mycc -v 1.1 \

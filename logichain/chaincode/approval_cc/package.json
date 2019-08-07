@@ -4,6 +4,8 @@
   "description": "Chaincode to manage organization approval on changing device ID",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint *.js --fix",
+    "pretest": "npm run lint",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "fabric-chaincode-node start"
   },
@@ -15,6 +17,10 @@
   "dependencies": {
     "fabric-contract-api": "~1.4.0",
     "fabric-shim": "~1.4.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.1.0",
+    "eslint-config-google": "^0.13.0"
   },
   "keywords": [
     "Org",

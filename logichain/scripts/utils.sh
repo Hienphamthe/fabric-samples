@@ -145,12 +145,12 @@ instantiateChaincode() {
   # the "-o" option
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode instantiate -o $ORDERER_ADDR -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')" >&log.txt
+    peer chaincode instantiate -o $ORDERER_ADDR -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c $ARG -P "AND ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')" >&log.txt
     res=$?
     set +x
   else
     set -x
-    peer chaincode instantiate -o $ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')" >&log.txt
+    peer chaincode instantiate -o $ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c $ARG -P "AND ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')" >&log.txt
     res=$?
     set +x
   fi
@@ -261,12 +261,12 @@ chaincodeInvoke() {
   # it using the "-o" option
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode invoke -o $ORDERER_ADDR -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+    peer chaincode invoke -o $ORDERER_ADDR -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c $ARG >&log.txt
     res=$?
     set +x
   else
     set -x
-    peer chaincode invoke -o $ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+    peer chaincode invoke -o $ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c $ARG >&log.txt
     res=$?
     set +x
   fi

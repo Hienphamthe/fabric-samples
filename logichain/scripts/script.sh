@@ -85,9 +85,11 @@ echo "Updating anchor peers for org2..."
 updateAnchorPeers 0 3
 
 ## Stop here if you want to install other chaincode
-echo "Stop before install any chaincode. Requested by user."
-exit 0
+#echo "Stop before install any chaincode. Requested by user."
+#exit 0
 
+# Working with approval chaincode
+CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/approval_cc/"
 ## Install chaincode on peer0.org1 and peer0.org2 and peer0.org3
 echo "Installing chaincode on peer0.org1..."
 installChaincode 0 1
@@ -95,10 +97,23 @@ echo "Installing chaincode on peer0.org2..."
 installChaincode 0 2
 echo "Installing chaincode on peer0.org3..."
 installChaincode 0 3
-
 # Instantiate chaincode on peer0.org2
 echo "Instantiating chaincode on peer0.org2..."
+ARG='{"function":"init","Args":[]}' #'{"Args":["init","a","100","b","200"]}'
 instantiateChaincode 0 2
+sleep 5
+# Invoke chaincode: add org approval on peer0.org1
+ARG='{"function":"addOrgApproval","Args":["Org1"]}' #'{"Args":["invoke","a","b","10"]}'
+setGlobals 0 1
+chaincodeInvoke 0 1 0 2 0 3
+sleep 10
+# Invoke chaincode: add org approval on peer0.org3
+ARG='{"function":"addOrgApproval","Args":["Org3"]}'
+setGlobals 0 3
+chaincodeInvoke 0 1 0 2 0 3
+
+echo "Stop before invoking approval_cc chaincode. Requested by user."
+exit 0
 
 # Query chaincode on peer0.org1
 echo "Querying chaincode on peer0.org1..."

@@ -4,5 +4,11 @@
 /ledgers
 /ledgers-backup
 /channel-artifacts/*.json
-/chaincode/mockstub/node_modules
+
+/chaincode/approval_cc/*.log
+/chaincode/sensor_data_cc/*.log
+/chaincode/sensor_id_cc/*.log
+
 /chaincode/approval_cc/node_modules
+/chaincode/sensor_data_cc/node_modules
+/chaincode/sensor_id_cc/node_modules
