@@ -6,9 +6,9 @@
 /channel-artifacts/*.json
 
 /chaincode/approval_cc/*.log
-/chaincode/sensor_data_cc/*.log
-/chaincode/sensor_id_cc/*.log
+/chaincode/device_data_cc/*.log
+/chaincode/device_key_cc/*.log
 
 /chaincode/approval_cc/node_modules
-/chaincode/sensor_data_cc/node_modules
-/chaincode/sensor_id_cc/node_modules
+/chaincode/device_data_cc/node_modules
+/chaincode/device_key_cc/node_modules

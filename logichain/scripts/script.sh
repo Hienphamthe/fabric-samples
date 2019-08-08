@@ -88,8 +88,10 @@ updateAnchorPeers 0 3
 #echo "Stop before install any chaincode. Requested by user."
 #exit 0
 
-# Working with device id chaincode
-CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/device_id_cc/"
+# Working with approval chaincode
+echo
+CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/approval_cc/"
+CC_NAME="approvalcc"
 ## Install chaincode on peer0.org1 and peer0.org2 and peer0.org3
 echo "Installing chaincode on peer0.org1..."
 installChaincode 0 1
@@ -97,6 +99,37 @@ echo "Installing chaincode on peer0.org2..."
 installChaincode 0 2
 echo "Installing chaincode on peer0.org3..."
 installChaincode 0 3
+# Instantiate chaincode on peer0.org2
+echo "Instantiating chaincode on peer0.org2..."
+ARG='{"function":"init","Args":[]}'
+instantiateChaincode 0 2
+sleep 5
+# Invoke chaincode: add org approval on peer0.org1
+ARG='{"function":"addOrgApproval","Args":["Org1"]}'
+setGlobals 0 1
+chaincodeInvoke 0 1 0 2 0 3
+sleep 10
+# Invoke chaincode: add org approval on peer0.org3
+ARG='{"function":"addOrgApproval","Args":["Org3"]}'
+setGlobals 0 3
+chaincodeInvoke 0 1 0 2 0 3
+
+setGlobals 0 1
+# echo "Stop after approval chaincode. Requested by user."
+# exit 0
+
+# Working with device id chaincode
+echo
+CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/device_key_cc/" 
+CC_NAME="devicekeycc"
+## Install chaincode on peer0.org1 and peer0.org2 and peer0.org3
+echo "Installing chaincode on peer0.org1..."
+installChaincode 0 1
+echo "Installing chaincode on peer0.org2..."
+installChaincode 0 2
+echo "Installing chaincode on peer0.org3..."
+installChaincode 0 3
+sleep 3
 # Instantiate chaincode on peer0.org2
 echo "Instantiating chaincode on peer0.org2..."
 ARG='{"function":"init","Args":[]}'
@@ -114,11 +147,14 @@ ARG='{"function":"addNewDevice","Args":["6","newpublickey2"]}'
 setGlobals 0 3
 chaincodeInvoke 0 1 0 2 0 3
 
-echo "Stop before after device_id_cc chaincode. Requested by user."
+setGlobals 0 1
+echo "Stop after test all chaincode. Requested by user."
 exit 0
 
-# Working with approval chaincode
-CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/approval_cc/"
+
+# Working with default test chaincode
+echo
+CC_NAME="mycc"
 ## Install chaincode on peer0.org1 and peer0.org2 and peer0.org3
 echo "Installing chaincode on peer0.org1..."
 installChaincode 0 1
@@ -128,27 +164,20 @@ echo "Installing chaincode on peer0.org3..."
 installChaincode 0 3
 # Instantiate chaincode on peer0.org2
 echo "Instantiating chaincode on peer0.org2..."
-ARG='{"function":"init","Args":[]}' #'{"Args":["init","a","100","b","200"]}'
+ARG='{"Args":["init","a","100","b","200"]}'
 instantiateChaincode 0 2
 sleep 5
 # Invoke chaincode: add org approval on peer0.org1
-ARG='{"function":"addOrgApproval","Args":["Org1"]}' #'{"Args":["invoke","a","b","10"]}'
+ARG='{"Args":["invoke","a","b","10"]}'
 setGlobals 0 1
 chaincodeInvoke 0 1 0 2 0 3
 sleep 10
-# Invoke chaincode: add org approval on peer0.org3
-ARG='{"function":"addOrgApproval","Args":["Org3"]}'
-setGlobals 0 3
-chaincodeInvoke 0 1 0 2 0 3
-
 # Query chaincode on peer0.org1
 echo "Querying chaincode on peer0.org1..."
 chaincodeQuery 0 1 100
-
 # Invoke chaincode on peer0.org1 and peer0.org2 peer0.org3
 echo "Sending invoke transaction on peer0.org1 peer0.org2 peer0.org3..."
 chaincodeInvoke 0 1 0 2 0 3
-
 # Query on chaincode on peer0.org2, check if the result is 90
 echo "Querying chaincode on peer0.org3..."
 chaincodeQuery 0 2 90

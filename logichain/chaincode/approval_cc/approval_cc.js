@@ -125,7 +125,7 @@ class ApprovalCC extends Contract {
      * Get all org approval
      * @param {Context} ctx the transaction context
     */
-    async getAllAppoval(ctx) {
+    async getAllApproval(ctx) {
         console.info('============= START : get All Org Approval ===========');
         const startKey = '';
         const endKey = '';
@@ -164,7 +164,7 @@ class ApprovalCC extends Contract {
      * @param {Context} ctx the transaction context
      * @param {String} org organization name
     */
-    async getOrgAppoval(ctx, org) {
+    async getOrgApproval(ctx, org) {
         console.info('============= START : get Org Approval ===========');
         const orgKey = `APPROVAL${org}`;
         const approvalAsBytes = await ctx.stub.getState(orgKey);
