@@ -1,9 +1,9 @@
 /channel-artifacts/*.tx
 /channel-artifacts/*.block
+/channel-artifacts/*.json
 /crypto-config/*
 /ledgers
 /ledgers-backup
-/channel-artifacts/*.json
 
 /chaincode/approval_cc/*.log
 /chaincode/device_data_cc/*.log

@@ -259,14 +259,16 @@ chaincodeInvoke() {
   # while 'peer chaincode' command can get the orderer endpoint from the
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
+  INVOKE_ORDERER_ADDR='orderer.org1.de:7050' # Always use orderer at org1 for invoking. In production, each org sends to their orderer.
+  INVOKE_ORDERER_ORG_CA='/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.de/peers/orderer.org1.de/msp/tlscacerts/tlsca.org1.de-cert.pem'
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode invoke -o $ORDERER_ADDR -C $CHANNEL_NAME -n $CC_NAME $PEER_CONN_PARMS -c $ARG >&log.txt
+    peer chaincode invoke -o $INVOKE_ORDERER_ADDR -C $CHANNEL_NAME -n $CC_NAME $PEER_CONN_PARMS -c $ARG >&log.txt
     res=$?
     set +x
   else
     set -x
-    peer chaincode invoke -o $ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA -C $CHANNEL_NAME -n $CC_NAME $PEER_CONN_PARMS -c $ARG >&log.txt
+    peer chaincode invoke -o $INVOKE_ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $INVOKE_ORDERER_ORG_CA -C $CHANNEL_NAME -n $CC_NAME $PEER_CONN_PARMS -c $ARG >&log.txt
     res=$?
     set +x
   fi

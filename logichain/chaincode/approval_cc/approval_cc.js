@@ -67,7 +67,7 @@ class Helper {
 
     /**
      * Get submitter ID and return approval
-     * @return {any} approval object
+     * @return {object} approval object
     */
     getApproval() {
         const submitterMSPID = this.submitterID.getMSPID();
@@ -154,7 +154,8 @@ class ApprovalCC extends Contract {
                 await iterator.close();
                 console.info(allResults);
                 console.info('============= END : get All Org Approval ===========');
-                return JSON.stringify(allResults);
+                // return JSON.stringify(allResults);
+                return "here i am"
             }
         }
     }

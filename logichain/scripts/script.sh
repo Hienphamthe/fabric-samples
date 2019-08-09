@@ -81,12 +81,12 @@ echo "Updating anchor peers for org1..."
 updateAnchorPeers 0 1
 echo "Updating anchor peers for org2..."
 updateAnchorPeers 0 2
-echo "Updating anchor peers for org2..."
+echo "Updating anchor peers for org3..."
 updateAnchorPeers 0 3
 
 ## Stop here if you want to install other chaincode
-#echo "Stop before install any chaincode. Requested by user."
-#exit 0
+# echo "Stop before install any chaincode. Requested by user."
+# exit 0
 
 # Working with approval chaincode
 echo
@@ -99,17 +99,20 @@ echo "Installing chaincode on peer0.org2..."
 installChaincode 0 2
 echo "Installing chaincode on peer0.org3..."
 installChaincode 0 3
+sleep 3
 # Instantiate chaincode on peer0.org2
 echo "Instantiating chaincode on peer0.org2..."
 ARG='{"function":"init","Args":[]}'
 instantiateChaincode 0 2
 sleep 5
 # Invoke chaincode: add org approval on peer0.org1
+echo "Invoke chaincode: add org approval on peer0.org1..."
 ARG='{"function":"addOrgApproval","Args":["Org1"]}'
 setGlobals 0 1
 chaincodeInvoke 0 1 0 2 0 3
-sleep 10
+sleep 5
 # Invoke chaincode: add org approval on peer0.org3
+echo "Invoke chaincode: add org approval on peer0.org3..."
 ARG='{"function":"addOrgApproval","Args":["Org3"]}'
 setGlobals 0 3
 chaincodeInvoke 0 1 0 2 0 3
@@ -140,7 +143,7 @@ echo "Invoke chaincode: change device key on peer0.org1..."
 ARG='{"function":"setDevice","Args":["1","newpublickey"]}'
 setGlobals 0 1
 chaincodeInvoke 0 1 0 2 0 3
-sleep 10
+sleep 5
 # Invoke chaincode: add new device on peer0.org3
 echo "Invoke chaincode: add new device on peer0.org3..."
 ARG='{"function":"addNewDevice","Args":["6","newpublickey2"]}'
@@ -171,7 +174,7 @@ sleep 5
 ARG='{"Args":["invoke","a","b","10"]}'
 setGlobals 0 1
 chaincodeInvoke 0 1 0 2 0 3
-sleep 10
+sleep 5
 # Query chaincode on peer0.org1
 echo "Querying chaincode on peer0.org1..."
 chaincodeQuery 0 1 100
