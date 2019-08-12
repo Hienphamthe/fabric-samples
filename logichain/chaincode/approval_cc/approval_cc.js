@@ -154,8 +154,7 @@ class ApprovalCC extends Contract {
                 await iterator.close();
                 console.info(allResults);
                 console.info('============= END : get All Org Approval ===========');
-                // return JSON.stringify(allResults);
-                return "here i am"
+                return JSON.stringify(allResults);
             }
         }
     }
@@ -206,7 +205,7 @@ class ApprovalCC extends Contract {
             approval.ApprovalStatus = Boolean(status);
             const approvalSet = changingSet.split(',');
             approval.ApprovalSet = [];
-            approvalSet.forEach((eachApproval) => approval.ApprovalSet.push(eachApproval));
+            approvalSet.forEach((eachApproval) => approval.ApprovalSet.push(Number(eachApproval)));
         } else {
             approval.ApprovalStatus = Boolean(status);
             approval.ApprovalSet = [];

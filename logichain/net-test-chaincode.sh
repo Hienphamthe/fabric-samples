@@ -47,10 +47,10 @@ peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"function":"getAllAppoval","A
 #Invoke chaincode (peer0.org3)
 peer chaincode invoke -o orderer.org3.de:7050 --tls true --cafile \
 /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.de/peers/orderer.org3.de/msp/tlscacerts/tlsca.org3.de-cert.pem \
--C $CHANNEL_NAME -n mycc --peerAddresses peer0.org1.de:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.de/peers/peer0.org1.de/tls/ca.crt \
+-C $CHANNEL_NAME -n approvalcc --peerAddresses peer0.org1.de:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.de/peers/peer0.org1.de/tls/ca.crt \
 --peerAddresses peer0.org2.de:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.de/peers/peer0.org2.de/tls/ca.crt \
 --peerAddresses peer0.org3.de:11051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.de/peers/peer0.org3.de/tls/ca.crt \
--c '{"function":"setOrgApproval","Args":["Org1","true","a,b,c"]}'
+-c '{"function":"setOrgApproval","Args":["Org1","true","1,2"]}'
 
 #Invoke chaincode (peer0.org1)
 peer chaincode invoke -o orderer.org1.de:7050 --tls true --cafile \
@@ -58,7 +58,7 @@ peer chaincode invoke -o orderer.org1.de:7050 --tls true --cafile \
 -C $CHANNEL_NAME -n devicekeycc --peerAddresses peer0.org1.de:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.de/peers/peer0.org1.de/tls/ca.crt \
 --peerAddresses peer0.org2.de:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.de/peers/peer0.org2.de/tls/ca.crt \
 --peerAddresses peer0.org3.de:11051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.de/peers/peer0.org3.de/tls/ca.crt \
--c '{"function":"setDevice","Args":["1","testchangekey"]}'
+-c '{"function":"setDevice","Args":["1","new key"]}'
 
 #Invoke chaincode (peer0.org2)
 peer chaincode invoke -o orderer.org2.de:7050 --tls true --cafile \

@@ -138,17 +138,17 @@ echo "Instantiating chaincode on peer0.org2..."
 ARG='{"function":"init","Args":[]}'
 instantiateChaincode 0 2
 sleep 5
-# Invoke chaincode: change device key on peer0.org1
-echo "Invoke chaincode: change device key on peer0.org1..."
+
+setGlobals 0 1
+echo "Stop after instantiate devicekeycc chaincode. Requested by user."
+exit 0
+
+# Invoke chaincode: change device key on peer0.org3
+echo "Invoke chaincode: change device key on peer0.org3..."
 ARG='{"function":"setDevice","Args":["1","newpublickey"]}'
 setGlobals 0 1
 chaincodeInvoke 0 1 0 2 0 3
 sleep 5
-# Invoke chaincode: add new device on peer0.org3
-echo "Invoke chaincode: add new device on peer0.org3..."
-ARG='{"function":"addNewDevice","Args":["6","newpublickey2"]}'
-setGlobals 0 3
-chaincodeInvoke 0 1 0 2 0 3
 
 setGlobals 0 1
 echo "Stop after test all chaincode. Requested by user."

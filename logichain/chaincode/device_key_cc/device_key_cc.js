@@ -16,47 +16,49 @@ class Helper {
 
     /**
      * Query all approval from approval chaincode
+     * @return {Array} list of all approvals
     */
     async queryApprovalCC() {
-        const txObj = await this.ctx.stub.invokeChaincode(APPROVAL_CC_NAME, ['getAllApproval']);
-        console.log(typeof txObj);
-        console.log(txObj);
-        
+        console.info('Check approval chaincode.');
+        const invokeArgs= ['getAllApproval'];
+        const txObj = await this.ctx.stub.invokeChaincode(APPROVAL_CC_NAME, invokeArgs);
         const allApprovalasByteBuffer = new Buffer(txObj.payload.toArrayBuffer());
-        console.log(allApprovalasByteBuffer);
-        console.log(typeof allApprovalasByteBuffer);
+        const allApprovalasJSON = JSON.parse(allApprovalasByteBuffer.toString());
         console.log(allApprovalasByteBuffer.toString());
-        // console.log(typeof allApproval);
+        return allApprovalasJSON;
     }
 
     /**
-     * Check all organization approval for changing device ID
+     * Check all organization approval for changing or adding device ID
      * @param {String} deviceID requested device ID
-     * @returns {boolean} got approval to change device?
+     * @return {boolean} got approval to change device?
     */
-    checkSetApproval(deviceID) {
-        console.info("Check approval chaincode.")
-        this.queryApprovalCC();
-        return true;
-    }
-
-    /**
-     * Check all organization approval for add new device ID
-     * @param {String} deviceID requested device ID
-     * @returns {boolean} got approval to add device?
-    */
-    checkAddApproval(deviceID) {
-        this.queryApprovalCC();
-        return true;
+    async checkApproval(deviceID) {
+        const allApproval = await this.queryApprovalCC();
+        if (allApproval.length===0) return false;
+        let allApprovalStatus = false;
+        let deviceKeyApprovalStatus = false;
+        let allApprovalStatusArray = [];
+        let allAllowedDeviceKey = [];
+        for (let index = 0; index < allApproval.length; index++) {
+            const approval = allApproval[index];
+            allApprovalStatusArray.push(approval.Record.ApprovalStatus);
+            approval.Record.ApprovalSet.forEach((deviceKey) => allAllowedDeviceKey.push(deviceKey));
+        }
+        const allAllowedDeviceKeySet = new Set(allAllowedDeviceKey);
+        const allApprovalStatusSet = new Set(allApprovalStatusArray);
+        allApprovalStatus = allApprovalStatusSet.has(true);
+        deviceKeyApprovalStatus = allAllowedDeviceKeySet.has(Number(deviceID));
+        return allApprovalStatus&&deviceKeyApprovalStatus;
     }
 
     /**
      * Check if chaincode function is provided with required args
      * @param {Array} args array of args
-     * @returns {boolean} return true if all args are provided
+     * @return {boolean} return true if all args are provided
     */
     checkFunctionArgs(args) {
-        return args.every(arg => Boolean(arg));
+        return args.every((arg) => Boolean(arg));
     }
 }
 
@@ -104,9 +106,9 @@ class DeviceIDCC extends Contract {
         console.info('============= START : Set Device ===========');
         const helper = new Helper(ctx);
         const deviceKey = `SENSOR${deviceID}`;
-        
-        if (!helper.checkFunctionArgs([deviceID,newPublicKey])) {
-            throw new Error(`All args are not provided.`);
+
+        if (!helper.checkFunctionArgs([deviceID, newPublicKey])) {
+            throw new Error('All args are not provided.');
         }
 
         const sensorAsBytes = await ctx.stub.getState(deviceKey);
@@ -115,9 +117,8 @@ class DeviceIDCC extends Contract {
         }
 
         const device = JSON.parse(sensorAsBytes.toString());
-        if (!helper.checkSetApproval(deviceID)) {
-            throw new Error(`Could not get all approvals, \
-            or requested device does not belongs to approval set.`)
+        if (!(await helper.checkApproval(deviceID))) {
+            throw new Error('Could not get all approvals, or requested device does not belongs to approval set.');
         }
         device.publicKey = newPublicKey;
         await ctx.stub.putState(deviceKey, Buffer.from(JSON.stringify(device)));
@@ -131,9 +132,9 @@ class DeviceIDCC extends Contract {
     */
     async getDevice(ctx, deviceID) {
         console.info('============= START : Get Device ===========');
-        let helper = new Helper();
+        const helper = new Helper();
         if (!helper.checkFunctionArgs([deviceID])) {
-            throw new Error(`DeviceID is not provided.`);
+            throw new Error('DeviceID is not provided.');
         }
         const deviceKey = `SENSOR${deviceID}`;
         const sensorAsBytes = await ctx.stub.getState(deviceKey);
@@ -155,10 +156,10 @@ class DeviceIDCC extends Contract {
         const helper = new Helper(ctx);
         const deviceKey = `SENSOR${deviceID}`;
 
-        if (!helper.checkFunctionArgs([deviceID,publicKey])) {
-            throw new Error(`All args are not provided.`);
+        if (!helper.checkFunctionArgs([deviceID, publicKey])) {
+            throw new Error('All args are not provided.');
         }
-        // if (!helper.checkAddApproval(deviceID)) {
+        // if (!helper.checkApproval(deviceID)) {
         //     throw new Error(`Device ID "${deviceID}" is not allowed to be listed.`)
         // }
 
