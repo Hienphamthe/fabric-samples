@@ -1,6 +1,4 @@
-'use strict';
-
-const SensorDataCC = require('./sensor_data-cc');
+const SensorDataCC = require('./sensor_data_cc');
 
 module.exports.SensorDataCC = SensorDataCC;
-module.exports.contracts = [ SensorDataCC ];
+module.exports.contracts = [SensorDataCC];

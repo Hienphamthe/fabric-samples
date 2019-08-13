@@ -160,6 +160,30 @@ instantiateChaincode() {
   echo
 }
 
+instantiatePrivateDataChaincode() {
+    PEER=$1
+    ORG=$2
+    COLLECTION_CONF='/opt/gopath/src/github.com/chaincode/device_data_cc/collection_config.json'
+    setGlobals $PEER $ORG
+    VERSION=${3:-1.0}
+
+    if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+      set -x
+      peer chaincode instantiate -o $ORDERER_ADDR -C $CHANNEL_NAME -n $CC_NAME -l ${LANGUAGE} -v ${VERSION} -c $ARG --collections-config $COLLECTION_CONF -P "OR('Org1MSP.member','Org2MSP.member','Org3MSP.member')" >&log.txt
+      res=$?
+      set +x
+    else
+      set -x
+      peer chaincode instantiate -o $ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA -C $CHANNEL_NAME -n $CC_NAME -l ${LANGUAGE} -v 1.0 -c $ARG --collections-config $COLLECTION_CONF -P "OR('Org1MSP.member','Org2MSP.member','Org3MSP.member')" >&log.txt
+      res=$?
+      set +x
+    fi
+    cat log.txt
+    verifyResult $res "Chaincode instantiation on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' failed"
+    echo "===================== Chaincode is instantiated on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+    echo
+}
+
 upgradeChaincode() {
   PEER=$1
   ORG=$2

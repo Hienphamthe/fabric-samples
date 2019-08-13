@@ -89,8 +89,9 @@ class DeviceIDCC extends Contract {
             const device = {
                 ...this.sensorTemplate,
                 id: index,
+                doctype: 'deviceID',
             };
-            await ctx.stub.putState(`SENSOR${index}`, Buffer.from(JSON.stringify(device)));
+            await ctx.stub.putState(`DEVICE${index}`, Buffer.from(JSON.stringify(device)));
             console.info('Added <--> ', device);
         }
         console.info('============= END : Initialize Device ID Ledger ===========');
@@ -105,18 +106,18 @@ class DeviceIDCC extends Contract {
     async setDevice(ctx, deviceID, newPublicKey) {
         console.info('============= START : Set Device ===========');
         const helper = new Helper(ctx);
-        const deviceKey = `SENSOR${deviceID}`;
+        const deviceKey = `DEVICE${deviceID}`;
 
         if (!helper.checkFunctionArgs([deviceID, newPublicKey])) {
             throw new Error('All args are not provided.');
         }
 
-        const sensorAsBytes = await ctx.stub.getState(deviceKey);
-        if (!sensorAsBytes || sensorAsBytes.length === 0) {
+        const deviceAsBytes = await ctx.stub.getState(deviceKey);
+        if (!deviceAsBytes || deviceAsBytes.length === 0) {
             throw new Error(`${deviceKey} does not exist`);
         }
 
-        const device = JSON.parse(sensorAsBytes.toString());
+        const device = JSON.parse(deviceAsBytes.toString());
         if (!(await helper.checkApproval(deviceID))) {
             throw new Error('Could not get all approvals, or requested device does not belongs to approval set.');
         }
@@ -129,6 +130,7 @@ class DeviceIDCC extends Contract {
      * Get each device id
      * @param {Context} ctx the transaction context
      * @param {String} deviceID device id
+     * @return {String} device key as string
     */
     async getDevice(ctx, deviceID) {
         console.info('============= START : Get Device ===========');
@@ -136,13 +138,13 @@ class DeviceIDCC extends Contract {
         if (!helper.checkFunctionArgs([deviceID])) {
             throw new Error('DeviceID is not provided.');
         }
-        const deviceKey = `SENSOR${deviceID}`;
-        const sensorAsBytes = await ctx.stub.getState(deviceKey);
-        if (!sensorAsBytes || sensorAsBytes.length === 0) {
+        const deviceKey = `DEVICE${deviceID}`;
+        const deviceAsBytes = await ctx.stub.getState(deviceKey);
+        if (!deviceAsBytes || deviceAsBytes.length === 0) {
             throw new Error(`${deviceKey} does not exist`);
         }
         console.info('============= END : Get Device ===========');
-        return sensorAsBytes.toString();
+        return deviceAsBytes.toString();
     }
 
     /**
@@ -154,17 +156,17 @@ class DeviceIDCC extends Contract {
     async addNewDevice(ctx, deviceID, publicKey) {
         console.info('============= START : Create Device ID ===========');
         const helper = new Helper(ctx);
-        const deviceKey = `SENSOR${deviceID}`;
+        const deviceKey = `DEVICE${deviceID}`;
 
         if (!helper.checkFunctionArgs([deviceID, publicKey])) {
             throw new Error('All args are not provided.');
         }
-        // if (!helper.checkApproval(deviceID)) {
-        //     throw new Error(`Device ID "${deviceID}" is not allowed to be listed.`)
-        // }
+        if (!(await helper.checkApproval(deviceID))) {
+            throw new Error(`Device ID "${deviceID}" is not allowed to be listed.`)
+        }
 
-        const sensorAsBytes = await ctx.stub.getState(deviceKey);
-        if (sensorAsBytes.length !== 0) {
+        const deviceAsBytes = await ctx.stub.getState(deviceKey);
+        if (deviceAsBytes.length !== 0) {
             throw new Error(`${deviceKey} is already exist`);
         }
         const device = {
