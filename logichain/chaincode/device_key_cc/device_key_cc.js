@@ -103,8 +103,8 @@ class DeviceIDCC extends Contract {
      * @param {String} deviceID device id
      * @param {String} newPublicKey new public key of device in hex-string
     */
-    async setDevice(ctx, deviceID, newPublicKey) {
-        console.info('============= START : Set Device ===========');
+    async setDeviceKey(ctx, deviceID, newPublicKey) {
+        console.info('============= START : Set Device Key ===========');
         const helper = new Helper(ctx);
         const deviceKey = `DEVICE${deviceID}`;
 
@@ -123,7 +123,7 @@ class DeviceIDCC extends Contract {
         }
         device.publicKey = newPublicKey;
         await ctx.stub.putState(deviceKey, Buffer.from(JSON.stringify(device)));
-        console.info('============= END : Set Device ===========');
+        console.info('============= END : Set Device Key ===========');
     }
 
     /**
@@ -132,8 +132,8 @@ class DeviceIDCC extends Contract {
      * @param {String} deviceID device id
      * @return {String} device key as string
     */
-    async getDevice(ctx, deviceID) {
-        console.info('============= START : Get Device ===========');
+    async getDeviceKey(ctx, deviceID) {
+        console.info('============= START : Get Device Key ===========');
         const helper = new Helper();
         if (!helper.checkFunctionArgs([deviceID])) {
             throw new Error('DeviceID is not provided.');
@@ -143,8 +143,48 @@ class DeviceIDCC extends Contract {
         if (!deviceAsBytes || deviceAsBytes.length === 0) {
             throw new Error(`${deviceKey} does not exist`);
         }
-        console.info('============= END : Get Device ===========');
+        console.info('============= END : Get Device Key ===========');
         return deviceAsBytes.toString();
+    }
+
+    /**
+     * Get all device key
+     * @param {Context} ctx the transaction context
+     * @returns {String} array of all device key in JSON String
+    */
+    async getAllDeviceKey(ctx) {
+        console.info('============= START : get All Device Key ===========');
+        const startKey = '';
+        const endKey = '';
+
+        const iterator = await ctx.stub.getStateByRange(startKey, endKey);
+
+        const allResults = [];
+        while (true) {
+            const res = await iterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                console.log(res.value.value.toString('utf8'));
+
+                const Key = res.value.key;
+                let Record;
+                try {
+                    Record = JSON.parse(res.value.value.toString('utf8'));
+                } catch (err) {
+                    console.log(err);
+                    Record = res.value.value.toString('utf8');
+                }
+                delete Record.doctype;
+                allResults.push({Key, Record});
+            }
+            if (res.done) {
+                console.log('end of data');
+                await iterator.close();
+                console.info(allResults);
+                console.info('============= END : get All Device Key ===========');
+                return JSON.stringify(allResults);
+            }
+        }
     }
 
     /**
@@ -153,7 +193,7 @@ class DeviceIDCC extends Contract {
      * @param {String} deviceID device id
      * @param {String} publicKey public key of device in hex-string
     */
-    async addNewDevice(ctx, deviceID, publicKey) {
+    async addNewDeviceKey(ctx, deviceID, publicKey) {
         console.info('============= START : Create Device ID ===========');
         const helper = new Helper(ctx);
         const deviceKey = `DEVICE${deviceID}`;

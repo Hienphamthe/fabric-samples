@@ -88,6 +88,35 @@ updateAnchorPeers 0 3
 # echo "Stop before install any chaincode. Requested by user."
 # exit 0
 
+# Working with device id chaincode
+echo
+CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/device_key_cc/" 
+CC_NAME="devicekeycc"
+## Install chaincode on peer0.org1 and peer0.org2 and peer0.org3
+echo "Installing chaincode on peer0.org1..."
+installChaincode 0 1
+echo "Installing chaincode on peer0.org2..."
+installChaincode 0 2
+echo "Installing chaincode on peer0.org3..."
+installChaincode 0 3
+sleep 3
+# Instantiate chaincode on peer0.org2
+echo "Instantiating chaincode on peer0.org2..."
+ARG='{"function":"init","Args":[]}'
+instantiateChaincode 0 2
+sleep 5
+
+# Invoke chaincode: change device key on peer0.org3
+# echo "Invoke chaincode: change device key on peer0.org3..."
+# ARG='{"function":"setDevice","Args":["1","newpublickey"]}'
+# setGlobals 0 1
+# chaincodeInvoke 0 1 0 2 0 3
+# sleep 5
+
+setGlobals 0 1
+# echo "Stop after test all chaincode. Requested by user."
+# exit 0
+
 # Working with device data chaincode
 echo
 CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/device_data_cc/"
@@ -107,8 +136,12 @@ ARG='{"function":"init","Args":[]}'
 instantiatePrivateDataChaincode 0 2
 sleep 5
 
+echo "Instantiating chaincode on peer0.org3..."
+ARG='{"function":"addNewDeviceData","Args":["4"]}'
+chaincodeInvoke 0 1 0 2 0 3
+
 setGlobals 0 1
-echo "Stop after instantiate privatedatacc chaincode. Requested by user."
+echo "Stop after testing devicedatacc chaincode. Requested by user."
 exit 0
 
 # Working with approval chaincode
@@ -140,35 +173,6 @@ chaincodeInvoke 0 1 0 2 0 3
 setGlobals 0 1
 # echo "Stop after approval chaincode. Requested by user."
 # exit 0
-
-# Working with device id chaincode
-echo
-CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/device_key_cc/" 
-CC_NAME="devicekeycc"
-## Install chaincode on peer0.org1 and peer0.org2 and peer0.org3
-echo "Installing chaincode on peer0.org1..."
-installChaincode 0 1
-echo "Installing chaincode on peer0.org2..."
-installChaincode 0 2
-echo "Installing chaincode on peer0.org3..."
-installChaincode 0 3
-sleep 3
-# Instantiate chaincode on peer0.org2
-echo "Instantiating chaincode on peer0.org2..."
-ARG='{"function":"init","Args":[]}'
-instantiateChaincode 0 2
-sleep 5
-
-# Invoke chaincode: change device key on peer0.org3
-echo "Invoke chaincode: change device key on peer0.org3..."
-ARG='{"function":"setDevice","Args":["1","newpublickey"]}'
-setGlobals 0 1
-chaincodeInvoke 0 1 0 2 0 3
-sleep 5
-
-setGlobals 0 1
-echo "Stop after test all chaincode. Requested by user."
-exit 0
 
 
 # Working with default test chaincode

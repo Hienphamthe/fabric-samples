@@ -169,12 +169,12 @@ instantiatePrivateDataChaincode() {
 
     if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
       set -x
-      peer chaincode instantiate -o $ORDERER_ADDR -C $CHANNEL_NAME -n $CC_NAME -l ${LANGUAGE} -v ${VERSION} -c $ARG --collections-config $COLLECTION_CONF -P "OR('Org1MSP.member','Org2MSP.member','Org3MSP.member')" >&log.txt
+      peer chaincode instantiate -o $ORDERER_ADDR -C $CHANNEL_NAME -n $CC_NAME -l ${LANGUAGE} -v ${VERSION} -c $ARG --collections-config $COLLECTION_CONF -P "OutOf (2,'Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')" >&log.txt
       res=$?
       set +x
     else
       set -x
-      peer chaincode instantiate -o $ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA -C $CHANNEL_NAME -n $CC_NAME -l ${LANGUAGE} -v 1.0 -c $ARG --collections-config $COLLECTION_CONF -P "OR('Org1MSP.member','Org2MSP.member','Org3MSP.member')" >&log.txt
+      peer chaincode instantiate -o $ORDERER_ADDR --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_ORG_CA -C $CHANNEL_NAME -n $CC_NAME -l ${LANGUAGE} -v 1.0 -c $ARG --collections-config $COLLECTION_CONF -P "OutOf (2,'Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')" >&log.txt
       res=$?
       set +x
     fi

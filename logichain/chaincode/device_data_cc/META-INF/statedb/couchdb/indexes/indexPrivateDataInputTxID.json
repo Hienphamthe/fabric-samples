@@ -1,0 +1,10 @@
+{
+    "index": {
+        "fields": [
+            "inputTxID"
+        ]
+    },
+    "ddoc": "indexPrivateDataInputTxIDDoc",
+    "name": "indexPrivateDataInputTxID",
+    "type": "json"
+}
