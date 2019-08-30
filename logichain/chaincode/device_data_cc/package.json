@@ -10,7 +10,7 @@
     "start": "fabric-chaincode-node start"
   },
   "engines": {
-    "node": ">=8",
+    "node": ">=10.15.3",
     "npm": ">=5"
   },
   "engineStrict": true,

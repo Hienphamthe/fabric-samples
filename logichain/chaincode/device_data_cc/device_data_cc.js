@@ -1,106 +1,6 @@
 const { Contract } = require('fabric-contract-api');
-const DEVICEKEY_CC_NAME = 'devicekeycc';
-const QUERY_FUNCTION_NAME = 'getDeviceKey';
-const PRIVATE_CONTRACT_12 = 'contractOf12';
-const PRIVATE_CONTRACT_13 = 'contractOf13';
-const TRANSIENT_MAPNAME = 'devicedata';
-
-
-/**
- * Helper class
-*/
-class Helper {
-    /**
-     * Constructor
-     * @param {Context} ctx the transaction context
-    */
-    constructor(ctx) {
-        this.ctx = ctx;
-    }
-
-    /**
-     * Query all approval from approval chaincode
-     * @param {String} deviceID requested device ID
-     * @return {Array} list of all approvals
-    */
-    async queryDeviceKeyChaincode(deviceID) {
-        console.info(`Check ${DEVICEKEY_CC_NAME} chaincode.`);
-
-        const invokeArgs = [QUERY_FUNCTION_NAME, String(deviceID)];
-        const txObj = await this.ctx.stub.invokeChaincode(DEVICEKEY_CC_NAME, invokeArgs);
-
-        const txPayloadasByteBuffer = new Buffer(txObj.payload.toArrayBuffer());
-        const payloadasJSON = JSON.parse(txPayloadasByteBuffer.toString());
-        console.log(txPayloadasByteBuffer.toString());
-        return payloadasJSON;
-    }
-
-    /**
-     * Get Tx private payload from transient field
-     * @return {object} tx as JSON object
-    */
-    getTxPayload() {
-        let transientData = this.ctx.stub.getTransient();
-        // convert into buffer
-        let buffer = new Buffer(transientData.map[TRANSIENT_MAPNAME].value.toArrayBuffer());
-        // from buffer into string
-        let JSONString = buffer.toString('utf8');
-        // from json string into object
-        console.log(JSONString);
-        return JSON.parse(JSONString);
-    }
-
-    /**
-     * Verify if this transaction txid is recorded or not.
-     * @return {boolean} Return true if tx is recorded.
-    */
-    isTxRedundance () {
-        return false;
-    }
-
-    /**
-     * Verify transaction signature.
-     * @return {boolean} Return false if tx could not be verified.
-    */
-    verifyInputTx(tx) {
-        return true;
-    }
-
-    /**
-     * Check all organization approval for changing or adding device ID
-     * @param {String} deviceID requested device ID
-     * @return {boolean} got approval to change device?
-    */
-    async checkApproval(deviceID) {
-        // const allApproval = await this.queryApprovalCC();
-
-        // if (allApproval.length===0) return false;
-        // let allApprovalStatus = false;
-        // let deviceKeyApprovalStatus = false;
-        // let allApprovalStatusArray = [];
-        // let allAllowedDeviceKey = [];
-        // for (let index = 0; index < allApproval.length; index++) {
-        //     const approval = allApproval[index];
-        //     allApprovalStatusArray.push(approval.Record.ApprovalStatus);
-        //     approval.Record.ApprovalSet.forEach((deviceKey) => allAllowedDeviceKey.push(deviceKey));
-        // }
-        // const allAllowedDeviceKeySet = new Set(allAllowedDeviceKey);
-        // const allApprovalStatusSet = new Set(allApprovalStatusArray);
-        // allApprovalStatus = allApprovalStatusSet.has(true);
-        // deviceKeyApprovalStatus = allAllowedDeviceKeySet.has(Number(deviceID));
-        // return allApprovalStatus&&deviceKeyApprovalStatus;
-    }
-
-
-    /**
-     * Check if chaincode function is provided with required args
-     * @param {Array} args array of args
-     * @return {boolean} return true if all args are provided
-    */
-    checkFunctionArgs(args) {
-        return args.every((arg) => Boolean(arg));
-    }
-}
+const Helper = require('./utils.js');
+const {PRIVATE_CONTRACT_12, PRIVATE_CONTRACT_13} = require('./constants.js');
 
 /**
  * Define chaincode for managing device data ledger
@@ -146,7 +46,7 @@ class DeviceDataCC extends Contract {
         for (let index = 0; index < deviceMax; index++) {
             const device = {
                 ...this.deviceDataTemplate,
-                Id: index,
+                id: index,
             };
             const deviceKey = `DEVICE${index}`;
             await ctx.stub.putState(deviceKey, Buffer.from(JSON.stringify(device)));
@@ -155,7 +55,9 @@ class DeviceDataCC extends Contract {
         console.info('============= END : Initialize Device Data Ledger ===========');
     }
 
-    // Sample transient data: "{"txid":"12345","timestamp":"dd.mm.yyyy-hh.mm","payload":{"id":1,"damaged":true,"location":["long","latt"]},"signature":"abc123xyz456"}"
+    // Sample transient data: 
+    //"{"txid":"12345","timestamp":"dd.mm.yyyy-hh.mm","payload":{"id":1,"damaged":true,
+    //"location":["long","latt"]},"signature":"abc123xyz456"}"
     /**
      * Set device data
      * @param {Context} ctx the transaction context
@@ -175,16 +77,18 @@ class DeviceDataCC extends Contract {
             throw new Error(`${deviceKey} does not exist`);
         }
 
-        let tx = helper.getTxPayload();
-        let txID = tx.txid;
-        if (helper.isTxRedundance(txID)) {
-            throw new Error(`Transaction with "${txID}" is recorded.`);
+        const tx = helper.getTxPayload();
+        // let txID = tx.txid;
+        // if (await helper.isTxRedundance(contract, txID).catch(err => { throw err })) {
+        //     throw new Error(`Transaction with "${txID}" is recorded.`);
+        // }
+        if (!helper.verifyInputTx(tx).catch((err) => {
+            throw err;
+        })) {
+            throw new Error('Transaction from untrusted device.');
         }
-        if (!helper.verifyInputTx(tx)) {
-            throw new Error(`Transaction from untrusted device.`)
-        }
-        let privateData = (contract === PRIVATE_CONTRACT_12) 
-            ? { ...this.devicePrivateContract12 }
+        let privateData = (contract === PRIVATE_CONTRACT_12)
+            ? {...this.devicePrivateContract12}
             : (contract === PRIVATE_CONTRACT_13)
                 ? { ...this.devicePrivateContract13 }
                 : null;

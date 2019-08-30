@@ -171,8 +171,8 @@ ARG='{"function":"addOrgApproval","Args":["Org3"]}'
 chaincodeInvoke 0 1 0 2 0 3
 
 setGlobals 0 1
-# echo "Stop after approval chaincode. Requested by user."
-# exit 0
+echo "Stop after approval chaincode. Requested by user."
+exit 0
 
 
 # Working with default test chaincode

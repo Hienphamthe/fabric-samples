@@ -53,6 +53,7 @@ peer chaincode invoke -o orderer.org3.de:7050 --tls true --cafile \
 -c '{"function":"setDeviceData","Args":["1","contractOf12"]}'
 
 # Transient field
+export CHANNEL_NAME=logichainchannel
 export PRIVATE=$(echo -n "{\"txid\":\"12345\",\"timestamp\":\"dd.mm.yyyy-hh.mm\",\"payload\":{\"id\":1,\"damaged\":true,\"location\":[\"long\",\"latt\"]},\"signature\":\"abc123xyz456\"}" | base64 | tr -d \\n)
 --transient "{\"devicedata\":\"$PRIVATE\"}"
 

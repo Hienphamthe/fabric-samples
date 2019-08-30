@@ -1,4 +1,4 @@
-const SensorDataCC = require('./sensor_data_cc');
+const DeviceDataCC = require('./device_data_cc');
 
-module.exports.SensorDataCC = SensorDataCC;
-module.exports.contracts = [SensorDataCC];
+module.exports.DeviceDataCC = DeviceDataCC;
+module.exports.contracts = [DeviceDataCC];
