@@ -12,3 +12,4 @@
 /chaincode/approval_cc/node_modules
 /chaincode/device_data_cc/node_modules
 /chaincode/device_key_cc/node_modules
+/chaincode/device_key_cc/keystore.json

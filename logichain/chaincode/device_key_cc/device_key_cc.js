@@ -1,4 +1,6 @@
 const {Contract} = require('fabric-contract-api');
+const fs = require('fs');
+const keyFilePath = `${__dirname}/keystore.json`
 const Helper = require('./utils.js');
 
 
@@ -11,9 +13,10 @@ class DeviceIDCC extends Contract {
     */
     constructor() {
         super();
+        this.keypairList = JSON.parse(fs.readFileSync(keyFilePath));
         this.sensorTemplate = {
             id: 0,
-            publicKey: 'hex format',
+            publicKey: '',
         };
     }
 
@@ -23,11 +26,12 @@ class DeviceIDCC extends Contract {
     */
     async init(ctx) {
         console.info('============= START : Initialize Device ID Ledger ===========');
-        const sensorMax = 5;
+        const sensorMax = this.keypairList.length;
         for (let index = 0; index < sensorMax; index++) {
             const device = {
                 ...this.sensorTemplate,
                 id: index,
+                publicKey: this.keypairList[index].pubKey,
                 doctype: 'deviceID',
             };
             await ctx.stub.putState(`DEVICE${index}`, Buffer.from(JSON.stringify(device)));

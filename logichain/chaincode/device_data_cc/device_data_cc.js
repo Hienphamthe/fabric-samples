@@ -82,10 +82,13 @@ class DeviceDataCC extends Contract {
         // if (await helper.isTxRedundance(contract, txID).catch(err => { throw err })) {
         //     throw new Error(`Transaction with "${txID}" is recorded.`);
         // }
-        if (!helper.verifyInputTx(tx).catch((err) => {
-            throw err;
-        })) {
-            throw new Error('Transaction from untrusted device.');
+        try {
+            const isInputTxValid = await helper.verifyInputTx(tx);
+            if (!isInputTxValid) {
+                throw new Error('Invalid verification.');
+            }
+        } catch (error) {
+            throw error;
         }
         let privateData = (contract === PRIVATE_CONTRACT_12)
             ? {...this.devicePrivateContract12}
@@ -98,7 +101,6 @@ class DeviceDataCC extends Contract {
         privateData = {
             ...privateData,
             inputTxID: tx.txid,
-            timestamp: tx.timestamp,
             location: tx.payload.location,
         }
         let deviceData = {

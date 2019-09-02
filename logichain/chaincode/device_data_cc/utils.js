@@ -1,12 +1,11 @@
 const {
-    DEVICEKEY_CC_NAME, 
-    QUERY_FUNCTION_NAME, 
+    DEVICEKEY_CC_NAME,
+    QUERY_FUNCTION_NAME,
     TRANSIENT_MAPNAME
 } = require('./constants.js');
-
-class CryptoHelper {
-
-}
+const { createVerify } = require('crypto');
+const digestAlgo = 'RSA-SHA256';
+const signatureFormat = 'hex';
 
 /**
  * Helper class
@@ -48,7 +47,6 @@ class Helper {
         // from buffer into string
         let JSONString = buffer.toString('utf8');
         // from json string into object
-        console.log(JSONString);
         return JSON.parse(JSONString);
     }
 
@@ -85,6 +83,25 @@ class Helper {
     //     return false;
     // }
 
+
+    /**
+     * Verify a signature
+     * @param {string} publicKey public key
+     * @param {string} signature signature
+     * @param {string} message message
+     * @returns {boolean} true if signature is valid
+    */
+    doVerify(publicKey, signature, message) {
+        try {
+            const verifier = createVerify(digestAlgo);
+            verifier.update(message);
+            verifier.end();
+            return verifier.verify(publicKey, signature, signatureFormat);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     /**
      * Verify transaction signature.
      * @param {object} tx transaction sent from iot device
@@ -92,13 +109,19 @@ class Helper {
     */
     async verifyInputTx(tx) {
         const deviceID = tx.payload.id;
-        const deviceKeyObj = await this.queryDeviceKeyChaincode(deviceID);
+        const deviceKeyObjAsString = await this.queryDeviceKeyChaincode(deviceID);
+        const deviceKeyObj = JSON.parse(deviceKeyObjAsString);
         if (!deviceKeyObj.publicKey) {
-            throw new Error(`Public key of device id "${deviceID}" could not be found on ledger.`);   
+            throw new Error(`Public key of device id "${deviceID}" could not be found on ledger.`);
+        } else {
+            try {
+                return this.doVerify(deviceKeyObj.publicKey,
+                    tx.signature,
+                    JSON.stringify(tx.payload));
+            } catch (error) {
+                throw error;
+            }
         }
-        console.log(deviceKeyObj.publicKey);
-        
-        return true;
     }
 
     /**
